@@ -1,0 +1,25 @@
+
+{
+    "teams": [
+      {
+        "name": "Infra",
+        "location": "Bangalore"
+      },
+      {
+        "name": "Application",
+        "location": "Pune"
+      },
+      {
+        "name": "Testing",
+        "location": "Pune"
+      },
+      {
+        "name": "UI",
+        "location": "Bangalore"
+      },
+      {
+        "name": "Business-Analyst",
+        "location": "Hyderbad"
+      }
+    ]
+  }

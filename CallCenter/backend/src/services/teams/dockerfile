@@ -1,0 +1,51 @@
+# Below docker file has two section.
+# 
+# The first section builds from a golang image and is anmed as `build`.
+# A new folder `app` is created in the next step
+# All `go` files as well as `mod` and `sum` files are copied to the `app` folder.
+# The next three lines builds the application and 
+# copies the Executatble file `callcenter` to the `app` folder itself
+# 
+# The second section starts a new image and installs certificates
+# A new folder is created called `root`
+# The executable that is created in the first section is then copied to the `root` folder
+# The first image is then cleared.
+
+FROM golang:1.21.4 AS build
+
+## Create a repo and copy all related file
+WORKDIR /app
+COPY go.mod go.sum ./
+COPY *.go *.json ./
+
+## Build
+RUN go mod download
+RUN go mod tidy
+RUN CGO_ENABLED=0 GOOS=linux go build -o callcenter-team .
+
+FROM alpine:latest
+# RUN apk --no-cache add ca-certificates
+
+
+# There are 2 ways to launch the web-app
+# 1. (a) Make root folder as work-directory, 
+#    (b) Copy the build output file to workdir (root folder) and 
+#    (c) Run CMD from the root folder
+# 2. (a) Make ROOT as work-directory, 
+#    (b) Copy the build output file to workdir (ROOT) and 
+#    (c) Run CMD from the ROOT folder
+# Any of the below will work fine
+
+
+# 1.
+WORKDIR /root/
+COPY --from=build /app/callcenter-team ./
+COPY --from=build /app/*.json ./
+EXPOSE 8080
+ENTRYPOINT ["./callcenter-team"]
+
+# 2.
+# WORKDIR /
+# COPY --from=build /app/callcenter-team /callcenter-team
+# EXPOSE 8080
+# ENTRYPOINT ["/callcenter-team"]
