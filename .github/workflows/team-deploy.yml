@@ -12,4 +12,4 @@ jobs:
         uses: docker/login-action@v3
         with:
             username: premanshu
-            password: Pragyan@20101
+            password: dckr_pat_UD9kupRCkOsldfYDBv4WkdKoQuE
