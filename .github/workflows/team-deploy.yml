@@ -18,4 +18,4 @@ jobs:
       - name: Deploys application
         run: |
           docker build -t premanshu/teams:5 -f CallCenter/backend/src/services/teams/dockerfile .
-        
+          docker push premanshu/teams:5
