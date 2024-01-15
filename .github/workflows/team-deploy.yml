@@ -1,6 +1,6 @@
 name: Build and deploy Teams Services to Kubernetes
 on:
-  workflow_dispatch:
+  workflow_dispatch
 env:
   SERVICES_PATH: "./src/services"
 jobs:
