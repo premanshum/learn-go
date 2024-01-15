@@ -1,4 +1,3 @@
-# Build and deploy teams
 name: Build and deploy Teams Services to Kubernetes
 on:
   workflow_dispatch:
