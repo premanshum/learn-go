@@ -13,3 +13,8 @@ jobs:
         with:
             username: premanshu
             password: ${{ secrets.DOCKER_PAT }}
+            
+      - name: Deploys application
+        run: |
+          docker build -t premanshu/teams:5 -f CallCenter/backend/src/services/teams/dockerfile .
+        
