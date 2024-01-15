@@ -15,8 +15,11 @@ FROM golang:1.21.4 AS build
 
 ## Create a repo and copy all related file
 WORKDIR /app
-COPY go.mod go.sum ./
-COPY *.go *.json ./
+COPY CallCenter/backend/src/services/teams/go.mod ./
+COPY CallCenter/backend/src/services/teams/go.sum ./
+COPY CallCenter/backend/src/services/teams/*.go ./
+# COPY ../jobs/colorteams.json ./
+
 
 ## Build
 RUN go mod download

@@ -45,7 +45,7 @@ func HealthHandler(c *gin.Context) {
 func GetTeamsHandler(c *gin.Context) {
 
 	// Open jsonFile
-	jsonFile, err := os.Open("teams.json")
+	jsonFile, err := os.Open("../../../assets/teams.json")
 	// if os.Open returns an error then handle it
 	if err != nil {
 		fmt.Println(err)
@@ -78,7 +78,7 @@ func GetTeamsHandler(c *gin.Context) {
 	c.JSON(200, response)
 }
 
-func GetTeamsHandler1(c *gin.Context) {
+func GetTeamsHandler_1(c *gin.Context) {
 	var userlist []interface{}
 
 	userlist = append(userlist,

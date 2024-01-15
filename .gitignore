@@ -344,3 +344,4 @@ launch.json
 # Solution Filters
 *.slnf
 
+*.exe
