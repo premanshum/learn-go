@@ -27,6 +27,8 @@ func main() {
 }
 
 func SetupServer() *gin.Engine {
+
+	gin.SetMode(gin.DebugMode)
 	r := gin.Default()
 	r.GET("/", HealthHandler)
 	r.GET("/teams", GetTeamsHandler)
@@ -34,18 +36,18 @@ func SetupServer() *gin.Engine {
 }
 
 func HealthHandler(c *gin.Context) {
+	fmt.Println("Env-FileName:", os.Getenv("FILEPATH")+os.Getenv("FILENAME"))
 	response := ApiResponse{
-		Status:  os.Getenv("NEWVAR"),
-		Message: "Web-app is healthy",
+		Status:  os.Getenv("FILEPATH") + os.Getenv("FILENAME"),
+		Message: "Web-app is healthy.",
 	}
 
 	c.JSON(200, response)
 }
 
 func GetTeamsHandler(c *gin.Context) {
-
 	// Open jsonFile
-	jsonFile, err := os.Open("../../../assets/teams.json")
+	jsonFile, err := os.Open(os.Getenv("FILEPATH") + os.Getenv("FILENAME"))
 	// if os.Open returns an error then handle it
 	if err != nil {
 		fmt.Println(err)
@@ -70,7 +72,7 @@ func GetTeamsHandler(c *gin.Context) {
 	}
 
 	response := ApiResponse{
-		Status:  os.Getenv("NEWVAR"),
+		Status:  os.Getenv("FILEPATH") + os.Getenv("FILENAME"),
 		Message: "Data retrieved successfully",
 		Data:    array,
 	}
