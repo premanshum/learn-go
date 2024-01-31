@@ -10,5 +10,5 @@ jobs:
     steps:
       - uses: Azure/login@v1
         with:
-          creds: '{"clientId":"c4e50596-469b-40c7-805f-9179cddb14db","clientSecret":"Zgg8Q~GNzpYjaW4IibxDWWCm2t.d_vN2xHhWmbXG","subscriptionId":"c6d725ce-491e-4fcb-9890-b7b87427a2a9","tenantId":"05d75c05-fa1a-42e7-9cf1-eb416c396f2d"}'
+          creds: '{"clientId":"1c36ea3b-2887-4d9c-ab27-13f7a82a7d3f","clientSecret":"gK98Q~1kE3QAEZJcE7G6Bie7tUbTesZD51eIibnA","subscriptionId":"641cc733-cfeb-4c4c-bdc5-a126d7cc22f4","tenantId":"05d75c05-fa1a-42e7-9cf1-eb416c396f2d"}'
           
