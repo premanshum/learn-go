@@ -1,1 +1,12 @@
-
+name: test Azure login and others
+on:
+  workflow_dispatch
+env:
+  SERVICES_PATH: "./src/services"
+jobs:
+  AzureLogin:
+    name: "AzureLogin"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: d
+      
