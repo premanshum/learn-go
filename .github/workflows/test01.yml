@@ -8,5 +8,7 @@ jobs:
     name: "AzureLogin"
     runs-on: ubuntu-latest
     steps:
-      - uses: d
-      
+      - uses: Azure/login@v1
+        with:
+          creds: '{"clientId":"c4e50596-469b-40c7-805f-9179cddb14db","clientSecret":"Zgg8Q~GNzpYjaW4IibxDWWCm2t.d_vN2xHhWmbXG","subscriptionId":"c6d725ce-491e-4fcb-9890-b7b87427a2a9","tenantId":"05d75c05-fa1a-42e7-9cf1-eb416c396f2d'
+          
