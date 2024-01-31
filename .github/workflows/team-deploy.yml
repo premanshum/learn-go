@@ -17,5 +17,15 @@ jobs:
             
       - name: Deploys application
         run: |
-          docker build -t premanshu/teams:5 -f CallCenter/backend/src/services/teams/dockerfile .
-          docker push premanshu/teams:5
+          docker build -t premanshu/teams:latest -f CallCenter/backend/src/services/teams/dockerfile .
+          docker push premanshu/teams:latest
+      - name: azure login
+        uses: Azure/login@v1
+        with:
+          creds: '{"clientId":"1c36ea3b-2887-4d9c-ab27-13f7a82a7d3f","clientSecret":"sSc8Q~UeHx.X4hoNsx3I0pzxgnwX92xybXdqSa~D","subscriptionId":"641cc733-cfeb-4c4c-bdc5-a126d7cc22f4","tenantId":"05d75c05-fa1a-42e7-9cf1-eb416c396f2d"}'
+      - name: Azure Functions Container Action
+        uses: Azure/functions-container-action@v1.1.0
+        with:
+          app-name: funcapp-d-xplorer
+          image: premanshu/teams:latest
+      
