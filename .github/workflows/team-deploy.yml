@@ -26,6 +26,6 @@ jobs:
       - name: Azure Functions Container Action
         uses: Azure/functions-container-action@v1.1.0
         with:
-          app-name: 'dockerfunc02'
+          app-name: 'dockerfunc01'
           image: 'premanshu/teams:latest'
       
