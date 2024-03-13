@@ -5,7 +5,7 @@ metadata:
   name: mongodb
   namespace: cloud-explorer-d
 spec:
-  serviceName: "mongo-headless"
+  serviceName: "mongo-svc"
   replicas: 3
   selector:
     matchLabels:
@@ -35,13 +35,14 @@ spec:
           ports:
             - containerPort: 27017
           volumeMounts:
-            - name: data
-              mountPath: /data/db   
+            - name: callcenterdb
+              mountPath: /data/db
   volumeClaimTemplates:
     - metadata:
-        name: data
+        name: callcenterdb
       spec:
-        accessModes: ["ReadWriteOnce"]
+        accessModes:
+          - ReadWriteOnce
         resources:
           requests:
-            storage: 10Gi
+            storage: 1Gi
