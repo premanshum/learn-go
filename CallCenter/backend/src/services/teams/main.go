@@ -39,7 +39,7 @@ func HealthHandler(c *gin.Context) {
 	fmt.Println("Env-FileName:", os.Getenv("FILEPATH")+os.Getenv("FILENAME"))
 	response := ApiResponse{
 		Status:  os.Getenv("FILEPATH") + os.Getenv("FILENAME"),
-		Message: "Web-app is healthy.",
+		Message: "Web-app is healthy...",
 	}
 
 	c.JSON(200, response)
