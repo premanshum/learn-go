@@ -45,8 +45,8 @@ WORKDIR /root/
 # COPY --from=build CallCenter/backend/assets/*.json ./
 COPY --from=build /app/callcenter-team ./
 COPY --from=build /app/*.json ./
-EXPOSE 8080
-ENTRYPOINT ["./callcenter-team"]
+EXPOSE 7070
+CMD ["./callcenter-team"]
 
 # 2.
 # WORKDIR /
