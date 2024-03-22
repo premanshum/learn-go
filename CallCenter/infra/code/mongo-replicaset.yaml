@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata: 
+  name: callcenter-mongo
+  namespace: cloud-explorer-d
+  labels: 
+    app: cc-mongo
+    tier: database
+spec:
+  selector:
+    matchLabels: 
+      tier: database
+  replicas: 3
+  template:
+    metadata: 
+      name: cc-mongo
+      labels: 
+        tier: database
+    spec:
+      containers:
+        - name: cc-mongo
+          image: premanshu/teams

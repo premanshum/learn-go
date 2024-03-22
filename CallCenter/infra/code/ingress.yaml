@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: premteams-ingress
+  namespace: cloud-explorer-d
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-passthrough: "false" 
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: premteamssvc.maersk-digital.net
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service: 
+            name: premteams-service
+            port: 
+              number: 5002
+  tls:
+    - hosts:
+      - premteams.maersk-digital.net
+      secretName: tls-wildcard-maersk-digital-net

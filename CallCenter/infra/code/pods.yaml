@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: premteam
+  labels: 
+    app: teams
+    tier: backend
+spec:
+  containers:
+    - name: teams
+      image: premanshu/teams
