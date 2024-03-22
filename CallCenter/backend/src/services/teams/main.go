@@ -1,12 +1,16 @@
 package main
 
 import (
+	"callcenter/shared/dbEntity"
+	"callcenter/shared/mongodb"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 // Define a complex data structure
@@ -32,6 +36,7 @@ func SetupServer() *gin.Engine {
 	r := gin.Default()
 	r.GET("/", HealthHandler)
 	r.GET("/teams", GetTeamsHandler)
+	r.GET("/teamsdb", GetTeamsDBHandler)
 	return r
 }
 
@@ -102,4 +107,79 @@ func GetTeamsHandler_1(c *gin.Context) {
 	}
 
 	c.JSON(200, response)
+}
+
+func GetTeamsDBHandler(c *gin.Context) {
+	logger, _ := zap.NewProduction()
+	defer logger.Sync()
+
+	response := ApiResponse{
+		Status:  "400",
+		Message: "Unable to retrieve data.",
+	}
+
+	mongoConn, err := getMongoConnection("team")
+	if err != nil {
+		errorMessage := "error in getting mongo connection: " + err.Error()
+		logger.Error(errorMessage)
+		response.Message += errorMessage
+		c.JSON(400, response)
+	}
+
+	var teams []dbEntity.Team
+	filter := dbEntity.Team{}
+
+	//--------------Get the existing secret entity--------------
+	findErr := mongoConn.Find(filter, &teams, nil)
+	if findErr != nil {
+		if findErr.Error() == "mongo: no documents in result" {
+			errorMessage := "Teams not found in DB"
+			logger.Error(errorMessage)
+			response.Message += errorMessage
+			c.JSON(400, response)
+		} else {
+			errorMessage := "error in reading secret from DB: " + findErr.Error()
+			logger.Error(errorMessage)
+			response.Message += errorMessage
+			c.JSON(400, response)
+		}
+	}
+
+	// Open jsonFile
+
+	var array []interface{}
+
+	for _, v := range teams {
+		array = append(array, v)
+	}
+
+	response = ApiResponse{
+		Status:  "200",
+		Message: "Data retrieved successfully",
+		Data:    array,
+	}
+
+	c.JSON(200, response)
+}
+
+func getMongoConnection(collectionName string) (mongodb.MongodbConnection, error) {
+	logger, _ := zap.NewProduction()
+	defer logger.Sync()
+
+	var mongoDbUri string
+	debugMode := os.Getenv("DEBUG_MODE")
+	if len(debugMode) == 0 {
+		debugMode = "false"
+		logger.Warn("DEBUG_MODE is not specified in the DEBUG_MODE environment variable. Hence setting it to false")
+	}
+
+	if debugMode == "true" {
+		mongoDbUri = os.Getenv("MONGO_SERVER_URI")
+		if len(mongoDbUri) == 0 {
+			fmt.Println("Environment variable MONGO_SERVER_URI is missing.")
+			return mongodb.MongodbConnection{}, errors.New("mongoDbUri must be specified in the MONGO_SERVER_URI environment variable")
+		}
+	}
+
+	return mongodb.MongodbConnection{Uri: mongoDbUri, DbName: "callcenter", CollectionName: collectionName}, nil
 }
