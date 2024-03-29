@@ -15,17 +15,8 @@ FROM golang:1.21.4 AS build
 
 ## Create a repo and copy all related file
 WORKDIR /app
-# COPY CallCenter/backend/src/services/teams/go.mod ./
-# COPY CallCenter/backend/src/services/teams/go.sum ./
-# COPY CallCenter/backend/src/services/teams/*.go ./
-# COPY CallCenter/backend/src/services/teams/*.go ./
-# COPY CallCenter/backend/assets/*.json ./
 COPY CallCenter/backend/src/teams/ ./
-## Build
-
-WORKDIR /app
 RUN go mod download
-# RUN go get all
 RUN go mod tidy
 RUN CGO_ENABLED=0 GOOS=linux go build -o callcenter-team .
 
