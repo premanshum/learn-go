@@ -1,4 +1,4 @@
-name: Build and deploy Capella Services to Kubernetes
+name: Generate tag
 on:
   workflow_dispatch:
 jobs:
