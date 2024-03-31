@@ -27,5 +27,32 @@ jobs:
           }
           
           echo "latest_tag=$latest_tag"
-          echo "::set-output name=latest_tag::$latest_tag" 
-        
+          echo "::set-output name=latest_tag::$latest_tag"
+          
+      - name: "Bump version"
+        id: bumped
+        shell: pwsh
+        run: |
+          $latest_tag = "${{ steps.get-latest-version.outputs.latest_tag }}"
+          ($major, $minor, $patch) = $latest_tag.Split('.')
+          ($patch, $branch) = $patch.Split('-')
+          $major = $major.TrimStart("v") #trimming the v from major
+
+          # if ("${{ steps.define-ver-bump.outputs.major_bump }}" -eq 'true') {
+          #   $major = ([int]$major + 1)
+          #   $minor = 0
+          #   $patch = 0
+          # } elseif ("${{ steps.define-ver-bump.outputs.minor_bump }}" -eq 'true') {
+          #   $minor = ( [int]$minor + 1)
+          #   $patch = 0
+          # } elseif ("${{ steps.define-ver-bump.outputs.patch_bump }}" -eq 'true') {
+          #   $patch = ([int]$patch + 1)
+          #   if ("${{ env.BRANCH_NAME }}" -eq 'dev') {
+          #     $patch = "${patch}"
+          #   }
+          # }
+
+          $patch = ([int]$patch + 1)
+          $semantic_version = "v${major}.${minor}.${patch}"
+          echo "Should release: $semantic_version"
+          echo "::set-output name=semantic_version::$semantic_version"
