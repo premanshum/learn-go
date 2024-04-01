@@ -61,7 +61,7 @@ jobs:
         with:
           script: |
             if ( '${{ steps.get-latest-version.outputs.latest_tag }}' != '${{ steps.bumped.outputs.semantic_version }}' ) {
-              console.log('Creating tag: ${{ needs.generate.outputs.semantic_version }}')
+              console.log('Creating tag: ${{ steps.bumped.outputs.semantic_version }}')
               github.rest.git.createRef({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
