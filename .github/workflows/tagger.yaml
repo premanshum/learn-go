@@ -56,3 +56,19 @@ jobs:
           $semantic_version = "v${major}.${minor}.${patch}"
           echo "Should release: $semantic_version"
           echo "::set-output name=semantic_version::$semantic_version"
+      - name: Create tag only
+        uses: actions/github-script@v5
+        with:
+          script: |
+            if ( '${{ steps.get-latest-version.outputs.latest_tag }}' != '${{ steps.bumped.outputs.semantic_version }}' ) {
+              console.log('Creating tag: ${{ needs.generate.outputs.semantic_version }}')
+              github.rest.git.createRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: 'refs/tags/${{ needs.generate.outputs.semantic_version }}',
+                sha: context.sha
+              })  
+            } else {
+              console.log('Tag: ${{ needs.generate.outputs.semantic_version }} exists. Skipping tag creation.')
+            }   
+
