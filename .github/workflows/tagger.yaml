@@ -13,8 +13,8 @@ jobs:
         shell: pwsh
         run: |
           #tag number should match (e.g: v0.0.0 or v1.1.1)
-          $version_regex = "^v[0-9]+\.[0-9]+\.[0-9]+$"
-          $tags = (git tag | sort -V) -match $version_regex
+          # $version_regex = "^v[0-9]+\.[0-9]+\.[0-9]+$"
+          $tags = (git tag | sort -V) # -match $version_regex
           echo "Existing tags:"
           foreach ($tag in $tags) {
             echo $tag
