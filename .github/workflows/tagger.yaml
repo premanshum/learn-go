@@ -2,19 +2,21 @@ name: Generate tag
 on:
   workflow_dispatch:
 jobs:
-  generate:
-    name: Generate Tag Number
+  tag:
+    name: Tag in GitHub
     runs-on: ubuntu-latest
     steps:
       - name: check-out the code
         uses: actions/checkout@v2.4.0
+        with:
+          fetch-depth: 0
       - name: Get latest tag number
         id: get-latest-version
         shell: pwsh
         run: |
           #tag number should match (e.g: v0.0.0 or v1.1.1)
           # $version_regex = "^v[0-9]+\.[0-9]+\.[0-9]+$"
-          $tags = (git tag | sort -V) # -match $version_regex
+          $tags = (git tag | sort -V)  -match $version_regex
           echo "Existing tags:"
           foreach ($tag in $tags) {
             echo $tag
