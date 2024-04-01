@@ -19,7 +19,7 @@ jobs:
           foreach ($tag in $tags) {
             echo $tag
           }
-          # echo $tags
+          echo $tags
           if ($tags.Count -gt 0) {
             echo "prev_tag=$tags[-1]"
             $latest_tag = $tags[-1]
