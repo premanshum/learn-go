@@ -65,7 +65,7 @@ jobs:
               github.rest.git.createRef({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                ref: 'refs/tags/${{ needs.generate.outputs.semantic_version }}',
+                ref: 'refs/tags/${{ steps.bumped.outputs.semantic_version }}',
                 sha: context.sha
               })  
             } else {
