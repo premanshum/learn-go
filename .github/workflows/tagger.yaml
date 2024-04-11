@@ -32,7 +32,7 @@ jobs:
           
           echo "latest_tag=$latest_tag"
           # echo "::set-output name=latest_tag::$latest_tag"
-          echo "latest_tag=$latest_tag" >> $GITHUB_OUTPUT
+          echo "latest_tag=$latest_tag" >> $env:GITHUB_OUTPUT
           
       - name: "Bump version"
         id: bumped
@@ -61,7 +61,7 @@ jobs:
           $semantic_version = "v${major}.${minor}.${patch}"
           echo "Should release: $semantic_version"
           # echo "::set-output name=semantic_version::$semantic_version"
-          echo "semantic_version=$semantic_version" >> $GITHUB_OUTPUT
+          echo "semantic_version=$semantic_version" >> $env:GITHUB_OUTPUT
       - name: Create tag only
         uses: actions/github-script@v5
         with:
