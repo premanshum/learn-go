@@ -23,8 +23,8 @@ jobs:
           }
           echo $tags
           if ($tags.Count -gt 0) {
-            echo "prev_tag=$tags[-1]"
             $latest_tag = $tags[-1]
+            echo "prev_tag=$latest_tag"
           } else {
             echo "There is no tag yet. Hence tagging for sure."
             $latest_tag = "1.0.0"
