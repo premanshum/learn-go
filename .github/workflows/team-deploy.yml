@@ -81,14 +81,14 @@ jobs:
             password: ${{ secrets.DOCKER_PAT }}            
       - name: Deploys application
         run: |
-          docker build -t premanshu/teams:latest -f CallCenter/backend/src/teams/dockerfile .
+          docker build -t premanshu/teams:${{ needs.generate-tag.outputs.semantic_version }} -f CallCenter/backend/src/teams/dockerfile .
           docker push premanshu/teams:${{ needs.generate-tag.outputs.semantic_version }}
 
           
   tag-the-build:
     name: tag the build
     runs-on: ubuntu-latest
-    needs: [generate-tag] 
+    needs: [generate-tag, build_Image_and_deploy] 
     steps:
       - name: check-out the code
         uses: actions/checkout@v2.4.0
