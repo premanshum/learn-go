@@ -4,11 +4,76 @@ on:
 env:
   SERVICES_PATH: "./src/services"
 jobs:
+  generate-tag:
+    name: Generate Tag Number
+    runs-on: ubuntu-latest
+    outputs:
+      semantic_version: "${{ steps.bumped.outputs.semantic_version }}"
+    steps:
+      - name: check-out the code
+        uses: actions/checkout@v2.4.0
+        with:
+          fetch-depth: 0
+      - name: Get latest tag number
+        id: get-latest-version
+        shell: pwsh
+        run: |
+          #tag number should match (e.g: v0.0.0 or v1.1.1)
+          # $version_regex = "^v[0-9]+\.[0-9]+\.[0-9]+$"
+          $tags = (git tag | sort -V)  -match $version_regex
+          echo "Existing tags:"
+          foreach ($tag in $tags) {
+            echo $tag
+          }
+          echo $tags
+          if ($tags.Count -gt 0) {
+            echo "prev_tag=$tags[-1]"
+            $latest_tag = $tags[-1]
+          } else {
+            echo "There is no tag yet. Hence tagging for sure."
+            $latest_tag = "1.0.0"
+          }
+          
+          echo "latest_tag=$latest_tag"
+          # echo "::set-output name=latest_tag::$latest_tag"
+          echo "latest_tag=$latest_tag" >> $env:GITHUB_OUTPUT
+          
+      - name: "Bump version"
+        id: bumped
+        shell: pwsh
+        run: |
+          $latest_tag = "${{ steps.get-latest-version.outputs.latest_tag }}"
+          ($major, $minor, $patch) = $latest_tag.Split('.')
+          ($patch, $branch) = $patch.Split('-')
+          $major = $major.TrimStart("v") #trimming the v from major
+
+          # if ("${{ steps.define-ver-bump.outputs.major_bump }}" -eq 'true') {
+          #   $major = ([int]$major + 1)
+          #   $minor = 0
+          #   $patch = 0
+          # } elseif ("${{ steps.define-ver-bump.outputs.minor_bump }}" -eq 'true') {
+          #   $minor = ( [int]$minor + 1)
+          #   $patch = 0
+          # } elseif ("${{ steps.define-ver-bump.outputs.patch_bump }}" -eq 'true') {
+          #   $patch = ([int]$patch + 1)
+          #   if ("${{ env.BRANCH_NAME }}" -eq 'dev') {
+          #     $patch = "${patch}"
+          #   }
+          # }
+
+          $patch = ([int]$patch + 1)
+          $semantic_version = "v${major}.${minor}.${patch}"
+          echo "Should release: $semantic_version"
+          # echo "::set-output name=semantic_version::$semantic_version"
+          echo "semantic_version=$semantic_version" >> $env:GITHUB_OUTPUT
+
   build_Image_and_deploy:
     name: "Build Image and Deploy"
     runs-on: ubuntu-latest
+    needs: [generate-tag] 
     steps:
-      - uses: actions/checkout@v2.4.0
+      - name: code checkout
+        uses: actions/checkout@v2.4.0
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -17,4 +82,26 @@ jobs:
       - name: Deploys application
         run: |
           docker build -t premanshu/teams:latest -f CallCenter/backend/src/teams/dockerfile .
-          docker push premanshu/teams:latest
+          docker push premanshu/teams:${{ needs.generate-tag.outputs.semantic_version }}
+
+          
+  tag-the-build:
+    name: tag the build
+    runs-on: ubuntu-latest
+    needs: [generate-tag] 
+    steps:
+      - name: check-out the code
+        uses: actions/checkout@v2.4.0
+        with:
+          fetch-depth: 0      
+      - name: assign tag
+        uses: actions/github-script@v5
+        with:
+          script: |          
+            console.log('Creating tag: ${{ needs.generate-tag.outputs.semantic_version }}')
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'refs/tags/${{ needs.generate-tag.outputs.semantic_version }}',
+              sha: context.sha
+            })  
