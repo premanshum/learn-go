@@ -46,11 +46,12 @@ func HealthHandler(c *gin.Context) {
 	fmt.Println("Env-FileName:", os.Getenv("FILEPATH")+os.Getenv("FILENAME"))
 
 	var apiSettings struct {
-		FilePath  string
-		FileName  string
-		MongoPort string
-		MongoURI  string
-		Version   string
+		FilePath   string
+		FileName   string
+		MongoPort  string
+		MongoURI   string
+		Version    string
+		LastUpdate string
 	}
 
 	apiSettings.FileName = os.Getenv("FILENAME")
@@ -58,6 +59,7 @@ func HealthHandler(c *gin.Context) {
 	apiSettings.Version = os.Getenv("VERSION")
 	apiSettings.MongoPort = os.Getenv("MONGO_SVC_PORT")
 	apiSettings.MongoURI = os.Getenv("MONGO_SERVER_URI")
+	apiSettings.LastUpdate = os.Getenv("LASTUPDATE")
 
 	response := ApiResponse{
 		Status:  "200",
