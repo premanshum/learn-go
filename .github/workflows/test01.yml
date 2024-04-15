@@ -16,7 +16,7 @@ jobs:
         uses: azure/setup-kubectl@v4
         
       - name: Kubernetes Login
-        uses: Azure/k8s-set-context@v4
+        uses: Azure/k8s-set-context@v1
         with:
           method: service-account
           k8s-url: 'https://cloud-engineering-dev-westeurope-1-fe6c3b18.hcp.westeurope.azmk8s.io:443'
