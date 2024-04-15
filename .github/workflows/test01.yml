@@ -16,8 +16,9 @@ jobs:
         uses: azure/setup-kubectl@v4
         
       - name: Kubernetes Login
-        uses: Azure/aks-set-context@v4
+        uses: Azure/k8s-set-context@v4
         with:
-          creds: '${{ secrets.AZURE_CREDENTIALS }}'
-          cluster-name: contoso
-          resource-group: contoso-rg
+          method: service-account
+          k8s-url: 'https://cloud-engineering-dev-westeurope-1-fe6c3b18.hcp.westeurope.azmk8s.io:443'
+          k8s-secret: 'eyJhbGciOiJSUzI1NiIsImtpZCI6IlJULUtDRjdPWmp4M2FjWWFfcG83T3hCeGNuUU56RVlyOC0xRWZyZENDeWsifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJjbG91ZC1leHBsb3Jlci1kIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6ImRlZmF1bHQtdG9rZW4tc2VjcmV0Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQubmFtZSI6ImRlZmF1bHQiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC51aWQiOiI2OGZkMmE0MS0xNmNlLTRiNzAtOWUwZi1jNDEwYTgyZWQ5OTgiLCJzdWIiOiJzeXN0ZW06c2VydmljZWFjY291bnQ6Y2xvdWQtZXhwbG9yZXItZDpkZWZhdWx0In0.H-TQ6y3ySEGYpQtKxTF2bBaOP3OEHQ3guv18Us0S-p-Iqad8RuUs4zPx4dsOMvI_rj9k4mifz84LZWo5xlTKbUI2Qv3i0KipZHGkokfPsnsSWDMjNVZNAgoUtaV-GMc-CDtio4Ij6_4_SpMacjkZXahyXEhMPDuY2P_9l0YYMLn66EUdx_Aeq_u9iY54S95M876zhxurbm6XL3-hiUKWkBnA25AvagrHSOhOJ42sW2BrbDPJUYPWTrbNFlCoc01oAECwuL9hZYartWknOXZknq5KxUbCR5s5AzP6Oo3uRDMgAAiCcz-JYNN9Rtk7iHqbaSsJjtGlrwXPcb9icTUScMfhwf5Q9DECHKDKig-_QnPk1Obo2583BPlyJu5HIWtKCQsfTh13Nwz3TE4XWfDcbq6ARmSz-gxggDgDjrFRlukTR4xqF3bb08etgO9MMr8INQYoEPWFmkrdjwlXBgcl9z-gDQGvmRv763j9hryecxR9UwUu8QBjeWosEqkh0B95omW0Tuar-Q9GgHvnoaQq5GWUAAOeldL78AHQ3A2Regcfn0yG1Q5r2aXgnI6D109_YdIHGqH7PIwDMDVtjmGVI0Apy8LwRHtROe5nyoFBjXaq_R8CTIGPLoGVSckuZJ9kzsioBma4dez950vcLh5JDsiCHqcgdILF00L6GX5M-qU'
+          
