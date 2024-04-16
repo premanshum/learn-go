@@ -81,6 +81,52 @@ jobs:
           docker build -t premanshu/teams:${{ needs.generate-tag.outputs.semantic_version }} -f CallCenter/backend/src/teams/dockerfile .
           docker push premanshu/teams:${{ needs.generate-tag.outputs.semantic_version }}
 
+      - name: Install Kubectl
+        uses: azure/setup-kubectl@v4
+          
+      - name: Kubernetes Login
+        uses: Azure/k8s-set-context@v1
+        with:
+          method: service-account
+          k8s-url: 'https://cloud-engineering-dev-westeurope-1-fe6c3b18.hcp.westeurope.azmk8s.io:443'
+          k8s-secret: |
+            apiVersion: v1
+            data:
+              ca.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUU2VENDQXRHZ0F3SUJBZ0lSQU9nd0pIa0wrcmRsbFdvaXI3RGZhZjh3RFFZSktvWklodmNOQVFFTEJRQXcKRFRFTE1Ba0dBMVVFQXhNQ1kyRXdJQmNOTWpJd09URTFNVE14T1RJeldoZ1BNakExTWpBNU1UVXhNekk1TWpOYQpNQTB4Q3pBSkJnTlZCQU1UQW1OaE1JSUNJakFOQmdrcWhraUc5dzBCQVFFRkFBT0NBZzhBTUlJQ0NnS0NBZ0VBCnNNRFdTdHQ2TWxRM2psZjk2U3RjMXlMRDZQRC94cG5wUDBQNUNWK1pyZ1lyNmg3dTNocjhQUjhpeG9vMUZud2cKSlVqckpRRDZ3RVNGWlZIZnpMMUVzUHV4ZTE0a0pvL3d6aWFCa0ZJMHVSY1hBWXVhcEFZS1lLd25qc0NmZ2NGLwpYNnFNQm5JRVZtcThleEJEa1VsMWNuTFNmcXZMKzVmQTVyRE5mOExRQ1E5SkRMWG9lRDUyR09sRG1LUVZ4SXVkCjIzTXRVNnpDOUR3RVJUam45cG0rYTZrdmc1ZnIrbUcydWFMMGs2TnBPNStHWTA1bHhOMmpJcmpPNDNDSEN4anoKc0dCMWI0UkM1bVdncm13dWErNWpOY2t5VSs2NW9FWG1NVmF5ank4K2F4SDhndlpsTTF0Y0QxWUs3QUt5eDBNcQpwd09NUXBHY0hESkZUZ0tyR0pxRC9RenA1eFlGSzNXZkhJSnplYzAzTFZBQUlrSUFZZ0p0cmpKK25UcnhtaWRZCnlhZmpRVzBlbzh4a3lOdUsyZDdhVjNVVGl5aTgwYytOVUdyRGllamN5REtQOHhTMUhjU1dicGJGSTVUcFVHQ0UKeXZjNzNtWXQ0OVBQcHpvSTRpL0NkcUI1NWw2Tm5taHpOYkgvQzZzbFJEMW5vdUdNMXQxRW1obkFqd21RejZudQpHTWpwcEpwNkdvUmd1WmJnTEt4V0UxMXpKd3FQZ0Z6R1NpU0J2QTgxekZJenNaZ2FWRkF3R3NhUFFIZDFxYVBsCmVtaUd6VGZvbmZTeW11WDhPcXZmNlNMeExhcnQ5NVRLSnFTaGhUUnhmSVZaKzNSUmhKek5Zbzc0TWJFUWJZSmMKRkc3UTExTkxHQ250TmFvV01WaEdtMVBSMlNSTVQ4NzVIcTNlN3FaM1E2TUNBd0VBQWFOQ01FQXdEZ1lEVlIwUApBUUgvQkFRREFnS2tNQThHQTFVZEV3RUIvd1FGTUFNQkFmOHdIUVlEVlIwT0JCWUVGREpuOGxnTFcxQXUxRm5zCnJzbEpUWjNNVHM1SU1BMEdDU3FHU0liM0RRRUJDd1VBQTRJQ0FRQ0hHTTF3bHI2UHNqdGdXSFpUelN1ZFBWVm4KK0ljWDhSQW54eU9Yd2dSMXZTNm85aFRvS0dHZ01ZSWVGbURWN1FoYXQwcEpZNXVQWHdicWlxazNodXZuVys0RgpTQUQ2YlVZYldMcW5SaUFBVGc2WitBTUxoSnRYNW1TNXJ4V1d5Y2ZXakZwY1hNV1JVSFdBTFlqQzh5MDFadkNKCnZOOEhUSjRSS1VWcXFlSUVhcmdBVDdJWXVYcHVOdnEvUVozbU9mRW5yR2czSEdZN0NLTGZjQUZ0T29ibTJuVkoKMnRjRXBwdlMrU05MZjNSWVA5MXlDVjBKSTBPa2ZuT3U1SmtlMVN4Y3lzbmdkMUdFY3JlQWZ0a1dOZFgrdUV5dQp3ZWM5dHhKR0pJWmRVMXdGNkkvZnFVbXlFTk9VQnZ6NVYyUmhFUWdJUTlUM2VzekNvZWdlTHRvWmZ6eVorTHo5ClFqc1dQeURmYkxZVmg2SXBRYktQRjNPc2J1S01sc3JDTDJuQ1BvemF1TDBpNEx6TUdiSWZCK0JkZjZ6T294RHAKVWVTdTNmT3dVeEFYeS96bDJDU25vYVhqbU9jYXg0YlBxd0xOVDA2Y3RWY3Q0bEVnY0pobUNPWXV0RXhCMi9oUgo4M0JrKzBEdWxUTGdxbDZOVmdYeklzWVZCYjZUV3IxNWFXRENOd0FmaGlCMmdFTGdwRlpLZ0hncGEyYjlGbUdnClJkVWZCUElCZzV2L3U5eTdlRDRpSzlHWVdyWkxTcXpTZXNnM2M3bWp5WURZREcvTUtkWDhqdHpwYlRnVXRoSHUKS1M2OEp3a1RhUXdGUHllbEVudFQ2aHNTbmpPYlJkQnJKeSt0cm02M2lJcmdoT2huaHovT2NYTVN4S1R2OTZ5NQo5NlBEYVZRcnducFBaWWlmMGc9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
+              namespace: Y2xvdWQtZXhwbG9yZXItZA==
+              token: ZXlKaGJHY2lPaUpTVXpJMU5pSXNJbXRwWkNJNklsSlVMVXREUmpkUFdtcDRNMkZqV1dGZmNHODNUM2hDZUdOdVVVNTZSVmx5T0MweFJXWnlaRU5EZVdzaWZRLmV5SnBjM01pT2lKcmRXSmxjbTVsZEdWekwzTmxjblpwWTJWaFkyTnZkVzUwSWl3aWEzVmlaWEp1WlhSbGN5NXBieTl6WlhKMmFXTmxZV05qYjNWdWRDOXVZVzFsYzNCaFkyVWlPaUpqYkc5MVpDMWxlSEJzYjNKbGNpMWtJaXdpYTNWaVpYSnVaWFJsY3k1cGJ5OXpaWEoyYVdObFlXTmpiM1Z1ZEM5elpXTnlaWFF1Ym1GdFpTSTZJbVJsWm1GMWJIUXRkRzlyWlc0dGMyVmpjbVYwSWl3aWEzVmlaWEp1WlhSbGN5NXBieTl6WlhKMmFXTmxZV05qYjNWdWRDOXpaWEoyYVdObExXRmpZMjkxYm5RdWJtRnRaU0k2SW1SbFptRjFiSFFpTENKcmRXSmxjbTVsZEdWekxtbHZMM05sY25acFkyVmhZMk52ZFc1MEwzTmxjblpwWTJVdFlXTmpiM1Z1ZEM1MWFXUWlPaUkyT0daa01tRTBNUzB4Tm1ObExUUmlOekF0T1dVd1ppMWpOREV3WVRneVpXUTVPVGdpTENKemRXSWlPaUp6ZVhOMFpXMDZjMlZ5ZG1salpXRmpZMjkxYm5RNlkyeHZkV1F0Wlhod2JHOXlaWEl0WkRwa1pXWmhkV3gwSW4wLkgtVFE2eTN5U0VHWXBRdEt4VEYyYkJhT1AzT0VIUTNndXYxOFVzMFMtcC1JcWFkOFJ1VXM0elB4NGRzT012SV9yajlrNG1pZno4NExaV281eGxUS2JVSTJRdjNpMEtpcFpIR2tva2ZQc25zU1dETWpOVlpOQWdvVXRhVi1HTWMtQ0R0aW80SWo2XzRfU3BNYWNqa1pYYWh5WEVoTVBEdVkyUF85bDBZWU1MbjY2RVVkeF9BZXFfdTlpWTU0Uzk1TTg3NnpoeHVyYm02WEwzLWhpVUtXa0JuQTI1QXZhZ3JIU09oT0o0MnNXMkJyYkRQSlVZUFdUcmJORmxDb2MwMW9BRUN3dUw5aFpZYXJ0V2tuT1haa25xNUt4VWJDUjVzNUF6UDZPbzN1UkRNZ0FBaUNjei1KWU5OOVJ0azdpSHFiYVNzSmp0R2xyd1hQY2I5aWNUVVNjTWZod2Y1UTlERUNIS0RLaWctX1FuUGsxT2JvMjU4M0JQbHlKdTVISVd0S0NRc2ZUaDEzTnd6M1RFNFhXZkRjYnE2QVJtU3otZ3hnZ0RnRGpyRlJsdWtUUjR4cUYzYmIwOGV0Z085TU1yOElOUVlvRVBXRm1rcmRqd2xYQmdjbDl6LWdEUUd2bVJ2NzYzajlocnllY3hSOVV3VXU4UUJqZVdvc0Vxa2gwQjk1b21XMFR1YXItUTlHZ0h2bm9hUXE1R1dVQUFPZWxkTDc4QUhRM0EyUmVnY2ZuMHlHMVE1cjJhWGduSTZEMTA5X1lkSUhHcUg3UEl3RE1EVnRqbUdWSTBBcHk4THdSSHRST2U1bnlvRkJqWGFxX1I4Q1RJR1BMb0dWU2NrdVpKOWt6c2lvQm1hNGRlejk1MHZjTGg1SkRzaUNIcWNnZElMRjAwTDZHWDVNLXFV
+            kind: Secret
+            metadata:
+              annotations:
+                contact: alan.kelly@maersk.com
+                kubernetes.io/service-account.name: default
+                kubernetes.io/service-account.namespace: cloud-explorer-d
+                kubernetes.io/service-account.uid: 68fd2a41-16ce-4b70-9e0f-c410a82ed998
+              creationTimestamp: "2023-08-17T11:40:50Z"
+              labels:
+                admiralproductcode: cloudexplorer
+                customerdefinition: enabled
+                kubernetes.io/legacy-token-last-used: "2024-04-15"
+                kustomize.toolkit.fluxcd.io/name: customer-definition-k8s-manifests
+                kustomize.toolkit.fluxcd.io/namespace: flux-system
+                perpetual.maersk.io/admiral-code: cloudexplorer
+                perpetual.maersk.io/created-by: perpetual-platform
+                perpetual.maersk.io/customer-definition: enabled
+                perpetual.maersk.io/tenant: cloudexplorer
+                product: cloudexplorer
+              name: default-token-secret
+              namespace: cloud-explorer-d
+              resourceVersion: "1725848503"
+              uid: d4b3567f-71bf-485b-9f74-f99be1164519
+            type: kubernetes.io/service-account-token
+
+      - name: Application Deploy
+        uses: Azure/k8s-deploy@v4
+        with:
+          action: deploy
+          namespace: cloud-explorer-d
+          manifests: "CallCenter/infra/code/deployment.yaml"
+          images: premanshu/teams:${{ needs.generate-tag.outputs.semantic_version }}
           
   tag-the-build:
     name: tag the build
