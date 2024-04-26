@@ -15,7 +15,9 @@ FROM golang:1.21.4 AS build
 
 ## Create a repo and copy all related file
 WORKDIR /app
-COPY go.mod go.sum *.go ./
+COPY go.mod ./
+COPY go.sum ./
+COPY *.go ./
 
 
 ## Build

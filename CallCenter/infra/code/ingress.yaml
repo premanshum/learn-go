@@ -15,9 +15,9 @@ spec:
         pathType: Prefix
         backend:
           service: 
-            name: premteams-service
+            name: ccteams-service
             port: 
-              number: 5002
+              number: 8080
   tls:
     - hosts:
       - premteams.maersk-digital.net

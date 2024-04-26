@@ -1,3 +1,7 @@
+## Steps to make it work:
+
+1. 
+
 ## Create Pods
 
 1. kubectl apply -f c:\MyPrograms\learn-go\CallCenter\backend\src\services\teams\deployments\pods.yaml -n cloud-explorer-d
@@ -27,3 +31,7 @@ in secondary, use below command:
 
 To run the service locally  : `kubectl port-forward -n cloud-explorer-d svc/premteams-service 8080:5002`
 To run the database locally : `kubectl port-forward -n cloud-explorer-d svc/mongo-svc 27017:27017`
+
+## URL for the webapp
+
+https://premteamssvc.maersk-digital.net/teamsdb

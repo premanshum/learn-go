@@ -4,28 +4,148 @@ on:
 env:
   SERVICES_PATH: "./src/services"
 jobs:
+  generate-tag:
+    name: Generate Tag Number
+    runs-on: ubuntu-latest
+    outputs:
+      semantic_version: "${{ steps.bumped.outputs.semantic_version }}"
+    steps:
+      - name: check-out the code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Get latest tag number
+        id: get-latest-version
+        shell: pwsh
+        run: |
+          #tag number should match (e.g: v0.0.0 or v1.1.1)
+          # $version_regex = "^v[0-9]+\.[0-9]+\.[0-9]+$"
+          $tags = (git tag | sort -V)  -match $version_regex
+          echo "Existing tags:"
+          echo $tags
+          if ($tags.Count -gt 0) {
+            echo "prev_tag=$tags[-1]"
+            $latest_tag = $tags[-1]
+          } else {
+            echo "There is no tag yet. Hence tagging for sure."
+            $latest_tag = "1.0.0"
+          }
+          
+          echo "latest_tag=$latest_tag"
+          # echo "::set-output name=latest_tag::$latest_tag"
+          echo "latest_tag=$latest_tag" >> $env:GITHUB_OUTPUT
+          
+      - name: "Bump version"
+        id: bumped
+        shell: pwsh
+        run: |
+          $latest_tag = "${{ steps.get-latest-version.outputs.latest_tag }}"
+          ($major, $minor, $patch) = $latest_tag.Split('.')
+          ($patch, $branch) = $patch.Split('-')
+          $major = $major.TrimStart("v") #trimming the v from major
+
+          # if ("${{ steps.define-ver-bump.outputs.major_bump }}" -eq 'true') {
+          #   $major = ([int]$major + 1)
+          #   $minor = 0
+          #   $patch = 0
+          # } elseif ("${{ steps.define-ver-bump.outputs.minor_bump }}" -eq 'true') {
+          #   $minor = ( [int]$minor + 1)
+          #   $patch = 0
+          # } elseif ("${{ steps.define-ver-bump.outputs.patch_bump }}" -eq 'true') {
+          #   $patch = ([int]$patch + 1)
+          #   if ("${{ env.BRANCH_NAME }}" -eq 'dev') {
+          #     $patch = "${patch}"
+          #   }
+          # }
+
+          $patch = ([int]$patch + 1)
+          $semantic_version = "v${major}.${minor}.${patch}"
+          echo "Should release: $semantic_version"
+          # echo "::set-output name=semantic_version::$semantic_version"
+          echo "semantic_version=$semantic_version" >> $env:GITHUB_OUTPUT
+
   build_Image_and_deploy:
     name: "Build Image and Deploy"
     runs-on: ubuntu-latest
+    needs: [generate-tag] 
     steps:
-      - uses: actions/checkout@v2.4.0
+      - name: code checkout
+        uses: actions/checkout@v4
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
             username: premanshu
-            password: ${{ secrets.DOCKER_PAT }}
-            
+            password: ${{ secrets.DOCKER_PAT }}            
       - name: Deploys application
         run: |
-          docker build -t premanshu/teams:latest -f CallCenter/backend/src/services/teams/dockerfile .
-          docker push premanshu/teams:latest
-      - name: azure login
-        uses: Azure/login@v1
+          docker build -t premanshu/teams:${{ needs.generate-tag.outputs.semantic_version }} -f CallCenter/backend/src/teams/dockerfile .
+          docker push premanshu/teams:${{ needs.generate-tag.outputs.semantic_version }}
+
+      - name: Install Kubectl
+        uses: azure/setup-kubectl@v4
+          
+      - name: Kubernetes Login
+        uses: Azure/k8s-set-context@v1
         with:
-          creds: '{"clientId":"1c36ea3b-2887-4d9c-ab27-13f7a82a7d3f","clientSecret":"sSc8Q~UeHx.X4hoNsx3I0pzxgnwX92xybXdqSa~D","subscriptionId":"641cc733-cfeb-4c4c-bdc5-a126d7cc22f4","tenantId":"05d75c05-fa1a-42e7-9cf1-eb416c396f2d"}'
-      - name: Azure Functions Container Action
-        uses: Azure/functions-container-action@v1.1.0
+          method: service-account
+          k8s-url: 'https://cloud-engineering-dev-westeurope-1-fe6c3b18.hcp.westeurope.azmk8s.io:443'
+          k8s-secret: |
+            apiVersion: v1
+            data:
+              ca.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUU2VENDQXRHZ0F3SUJBZ0lSQU9nd0pIa0wrcmRsbFdvaXI3RGZhZjh3RFFZSktvWklodmNOQVFFTEJRQXcKRFRFTE1Ba0dBMVVFQXhNQ1kyRXdJQmNOTWpJd09URTFNVE14T1RJeldoZ1BNakExTWpBNU1UVXhNekk1TWpOYQpNQTB4Q3pBSkJnTlZCQU1UQW1OaE1JSUNJakFOQmdrcWhraUc5dzBCQVFFRkFBT0NBZzhBTUlJQ0NnS0NBZ0VBCnNNRFdTdHQ2TWxRM2psZjk2U3RjMXlMRDZQRC94cG5wUDBQNUNWK1pyZ1lyNmg3dTNocjhQUjhpeG9vMUZud2cKSlVqckpRRDZ3RVNGWlZIZnpMMUVzUHV4ZTE0a0pvL3d6aWFCa0ZJMHVSY1hBWXVhcEFZS1lLd25qc0NmZ2NGLwpYNnFNQm5JRVZtcThleEJEa1VsMWNuTFNmcXZMKzVmQTVyRE5mOExRQ1E5SkRMWG9lRDUyR09sRG1LUVZ4SXVkCjIzTXRVNnpDOUR3RVJUam45cG0rYTZrdmc1ZnIrbUcydWFMMGs2TnBPNStHWTA1bHhOMmpJcmpPNDNDSEN4anoKc0dCMWI0UkM1bVdncm13dWErNWpOY2t5VSs2NW9FWG1NVmF5ank4K2F4SDhndlpsTTF0Y0QxWUs3QUt5eDBNcQpwd09NUXBHY0hESkZUZ0tyR0pxRC9RenA1eFlGSzNXZkhJSnplYzAzTFZBQUlrSUFZZ0p0cmpKK25UcnhtaWRZCnlhZmpRVzBlbzh4a3lOdUsyZDdhVjNVVGl5aTgwYytOVUdyRGllamN5REtQOHhTMUhjU1dicGJGSTVUcFVHQ0UKeXZjNzNtWXQ0OVBQcHpvSTRpL0NkcUI1NWw2Tm5taHpOYkgvQzZzbFJEMW5vdUdNMXQxRW1obkFqd21RejZudQpHTWpwcEpwNkdvUmd1WmJnTEt4V0UxMXpKd3FQZ0Z6R1NpU0J2QTgxekZJenNaZ2FWRkF3R3NhUFFIZDFxYVBsCmVtaUd6VGZvbmZTeW11WDhPcXZmNlNMeExhcnQ5NVRLSnFTaGhUUnhmSVZaKzNSUmhKek5Zbzc0TWJFUWJZSmMKRkc3UTExTkxHQ250TmFvV01WaEdtMVBSMlNSTVQ4NzVIcTNlN3FaM1E2TUNBd0VBQWFOQ01FQXdEZ1lEVlIwUApBUUgvQkFRREFnS2tNQThHQTFVZEV3RUIvd1FGTUFNQkFmOHdIUVlEVlIwT0JCWUVGREpuOGxnTFcxQXUxRm5zCnJzbEpUWjNNVHM1SU1BMEdDU3FHU0liM0RRRUJDd1VBQTRJQ0FRQ0hHTTF3bHI2UHNqdGdXSFpUelN1ZFBWVm4KK0ljWDhSQW54eU9Yd2dSMXZTNm85aFRvS0dHZ01ZSWVGbURWN1FoYXQwcEpZNXVQWHdicWlxazNodXZuVys0RgpTQUQ2YlVZYldMcW5SaUFBVGc2WitBTUxoSnRYNW1TNXJ4V1d5Y2ZXakZwY1hNV1JVSFdBTFlqQzh5MDFadkNKCnZOOEhUSjRSS1VWcXFlSUVhcmdBVDdJWXVYcHVOdnEvUVozbU9mRW5yR2czSEdZN0NLTGZjQUZ0T29ibTJuVkoKMnRjRXBwdlMrU05MZjNSWVA5MXlDVjBKSTBPa2ZuT3U1SmtlMVN4Y3lzbmdkMUdFY3JlQWZ0a1dOZFgrdUV5dQp3ZWM5dHhKR0pJWmRVMXdGNkkvZnFVbXlFTk9VQnZ6NVYyUmhFUWdJUTlUM2VzekNvZWdlTHRvWmZ6eVorTHo5ClFqc1dQeURmYkxZVmg2SXBRYktQRjNPc2J1S01sc3JDTDJuQ1BvemF1TDBpNEx6TUdiSWZCK0JkZjZ6T294RHAKVWVTdTNmT3dVeEFYeS96bDJDU25vYVhqbU9jYXg0YlBxd0xOVDA2Y3RWY3Q0bEVnY0pobUNPWXV0RXhCMi9oUgo4M0JrKzBEdWxUTGdxbDZOVmdYeklzWVZCYjZUV3IxNWFXRENOd0FmaGlCMmdFTGdwRlpLZ0hncGEyYjlGbUdnClJkVWZCUElCZzV2L3U5eTdlRDRpSzlHWVdyWkxTcXpTZXNnM2M3bWp5WURZREcvTUtkWDhqdHpwYlRnVXRoSHUKS1M2OEp3a1RhUXdGUHllbEVudFQ2aHNTbmpPYlJkQnJKeSt0cm02M2lJcmdoT2huaHovT2NYTVN4S1R2OTZ5NQo5NlBEYVZRcnducFBaWWlmMGc9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
+              namespace: Y2xvdWQtZXhwbG9yZXItZA==
+              token: ZXlKaGJHY2lPaUpTVXpJMU5pSXNJbXRwWkNJNklsSlVMVXREUmpkUFdtcDRNMkZqV1dGZmNHODNUM2hDZUdOdVVVNTZSVmx5T0MweFJXWnlaRU5EZVdzaWZRLmV5SnBjM01pT2lKcmRXSmxjbTVsZEdWekwzTmxjblpwWTJWaFkyTnZkVzUwSWl3aWEzVmlaWEp1WlhSbGN5NXBieTl6WlhKMmFXTmxZV05qYjNWdWRDOXVZVzFsYzNCaFkyVWlPaUpqYkc5MVpDMWxlSEJzYjNKbGNpMWtJaXdpYTNWaVpYSnVaWFJsY3k1cGJ5OXpaWEoyYVdObFlXTmpiM1Z1ZEM5elpXTnlaWFF1Ym1GdFpTSTZJbVJsY0d4dmVXVnlMWFJ2YTJWdUxYTmxZM0psZENJc0ltdDFZbVZ5Ym1WMFpYTXVhVzh2YzJWeWRtbGpaV0ZqWTI5MWJuUXZjMlZ5ZG1salpTMWhZMk52ZFc1MExtNWhiV1VpT2lKa1pYQnNiM2xsY2lJc0ltdDFZbVZ5Ym1WMFpYTXVhVzh2YzJWeWRtbGpaV0ZqWTI5MWJuUXZjMlZ5ZG1salpTMWhZMk52ZFc1MExuVnBaQ0k2SWpOaE5XWXlPV1EyTFdOalpHSXROREk0TXkwNU4ySmlMVFZrT1RKbE9EQTBNakE0T0NJc0luTjFZaUk2SW5ONWMzUmxiVHB6WlhKMmFXTmxZV05qYjNWdWREcGpiRzkxWkMxbGVIQnNiM0psY2kxa09tUmxjR3h2ZVdWeUluMC5ZMjBmQ1g2bzVFWTd2YjB3Z0hObmtmSmd2Wl9TODR0YnN5amFYY2RPaXJPY3lIbzlXQkt6aU1YNTZ2c3NYQjFPdTliOUdka1R3ZzJrSXdaM1o2bGF3VS1QNkV2Y01VaGpqV1l0TjFUMUZGVkR1Mjdid2VJc1NTTGw5NlVtbHVEUEZURWVyam0wbElDYnFmamZObUpybG15REc4c0lGd2w3OW5Jcm54QVhBc2p5RmJxUWVEalRiQzBHY055Vng2eXVSb2ZKQmJnTzQ1RmV6d3M5MVRFc196WWF0VFlSVXRXQllCY3MzaEE3dy12SlFNcEtsNzRUSDA2VTVYcVl3bTlqejVMNHhkNERFRVhBVUlJVVNyOTBOaWR2NW1oeGdLZ28wSXp5eTlmZ292bmdKZXN4WFoxZnYxcDh6RXhNbVEtVURHRUY1Yy1oeVpJa2pKYmlmZFNzZXhRa2k1el95YlU0RUNxcjhVQlRvdzFKN3AzdWZEYTA2WUNxVXlhcGJJaElmck1wd3JWUnRzaGxvOV9FMy1YVC1ldFdSZmxYcDBQY1VrV3NLWmY5Q0JDYnJjX2FkVC1ncm9FaXRSMTRUdmJzYlpRcFhfUk9UTURJbWpwZ2V3SkhOSnJycFdiWGpQZU04M0tBSlVXVUhMNW43c0dDWExDNzVQZmhnRjZKRnJtdlZwNkthenFDbmZ3ZnBoSmtkLWo3dmJLZFg3VEt6QXp0bWhiNXhPbzBqUWo1Sm54SUNkUmtvY0U4OTM2dW92b0Zzd1Q0cUFSbEpGamVrRk5jYUlmUlpneWlCQVRreXROZnp1ZHJuM1VHZEJqbEYzeEZLdWFLbnRtXzBWa2p4WnlHaFk3NGdfZGpFMEpROGRVdzJMaVNKSG9ZQUF2TDgwTmpsMklvNjBZaTZ1dw==
+            kind: Secret
+            metadata:
+              annotations:
+                contact: alan.kelly@maersk.com
+                kubectl.kubernetes.io/last-applied-configuration: |
+                  {"apiVersion":"v1","kind":"Secret","metadata":{"annotations":{"contact":"alan.kelly@maersk.com","kubernetes.io/service-account.name":"deployer","kubernetes.io/service-account.namespace":"cloud-explorer-d"},"creationTimestamp":null,"labels":{"admiralproductcode":"cloudexplorer","customerdefinition":"enabled","perpetual.maersk.io/admiral-code":"cloudexplorer","perpetual.maersk.io/created-by":"perpetual-platform","perpetual.maersk.io/customer-definition":"enabled","perpetual.maersk.io/tenant":"cloudexplorer","product":"cloudexplorer"},"name":"deployer-token-secret","namespace":"cloud-explorer-d"},"type":"kubernetes.io/service-account-token"}
+                kubernetes.io/service-account.name: deployer
+                kubernetes.io/service-account.namespace: cloud-explorer-d
+                kubernetes.io/service-account.uid: 3a5f29d6-ccdb-4283-97bb-5d92e8042088
+              creationTimestamp: "2023-08-17T11:40:51Z"
+              labels:
+                admiralproductcode: cloudexplorer
+                customerdefinition: enabled
+                kustomize.toolkit.fluxcd.io/name: customer-definition-k8s-manifests
+                kustomize.toolkit.fluxcd.io/namespace: flux-system
+                perpetual.maersk.io/admiral-code: cloudexplorer
+                perpetual.maersk.io/created-by: perpetual-platform
+                perpetual.maersk.io/customer-definition: enabled
+                perpetual.maersk.io/tenant: cloudexplorer
+                product: cloudexplorer
+              name: deployer-token-secret
+              namespace: cloud-explorer-d
+              resourceVersion: "1732606979"
+              uid: 710b7c65-c5f3-45cd-8b44-524371785879
+            type: kubernetes.io/service-account-token
+
+      - name: Application Deploy
+        uses: Azure/k8s-deploy@v4
         with:
-          app-name: 'dockerfunc01'
-          image: 'premanshu/teams:latest'
-      
+          action: deploy
+          namespace: cloud-explorer-d
+          manifests: "CallCenter/infra/code/deployment.yaml"
+          images: premanshu/teams:${{ needs.generate-tag.outputs.semantic_version }}
+          
+  tag-the-build:
+    name: tag the build
+    runs-on: ubuntu-latest
+    needs: [generate-tag, build_Image_and_deploy] 
+    steps:
+      - name: check-out the code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0      
+      - name: assign tag
+        uses: actions/github-script@v5
+        with:
+          script: |          
+            console.log('Creating tag: ${{ needs.generate-tag.outputs.semantic_version }}')
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'refs/tags/${{ needs.generate-tag.outputs.semantic_version }}',
+              sha: context.sha
+            })  

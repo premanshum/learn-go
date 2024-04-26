@@ -1,0 +1,82 @@
+name: Generate tag
+on:
+  workflow_dispatch:
+jobs:
+  tag:
+    name: Tag in GitHub
+    runs-on: ubuntu-latest
+    steps:
+      - name: check-out the code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Get latest tag number
+        id: get-latest-version
+        shell: pwsh
+        run: |
+          #tag number should match (e.g: v0.0.0 or v1.1.1)
+          # $version_regex = "^v[0-9]+\.[0-9]+\.[0-9]+$"
+          $tags = (git tag | sort -V)  -match $version_regex
+          echo "Existing tags:"
+          foreach ($tag in $tags) {
+            echo $tag
+          }
+          echo "---"
+          echo $tags
+          echo "---"
+          if ($tags.Count -gt 0) {
+            $latest_tag = $tags[-1]
+            echo "prev_tag=$latest_tag"
+          } else {
+            echo "There is no tag yet. Hence tagging for sure."
+            $latest_tag = "1.0.0"
+          }
+          
+          echo "latest_tag=$latest_tag"
+          # echo "::set-output name=latest_tag::$latest_tag"
+          echo "latest_tag=$latest_tag" >> $env:GITHUB_OUTPUT
+          
+      - name: "Bump version"
+        id: bumped
+        shell: pwsh
+        run: |
+          $latest_tag = "${{ steps.get-latest-version.outputs.latest_tag }}"
+          ($major, $minor, $patch) = $latest_tag.Split('.')
+          ($patch, $branch) = $patch.Split('-')
+          $major = $major.TrimStart("v") #trimming the v from major
+
+          # if ("${{ steps.define-ver-bump.outputs.major_bump }}" -eq 'true') {
+          #   $major = ([int]$major + 1)
+          #   $minor = 0
+          #   $patch = 0
+          # } elseif ("${{ steps.define-ver-bump.outputs.minor_bump }}" -eq 'true') {
+          #   $minor = ( [int]$minor + 1)
+          #   $patch = 0
+          # } elseif ("${{ steps.define-ver-bump.outputs.patch_bump }}" -eq 'true') {
+          #   $patch = ([int]$patch + 1)
+          #   if ("${{ env.BRANCH_NAME }}" -eq 'dev') {
+          #     $patch = "${patch}"
+          #   }
+          # }
+
+          $patch = ([int]$patch + 1)
+          $semantic_version = "v${major}.${minor}.${patch}"
+          echo "Should release: $semantic_version"
+          # echo "::set-output name=semantic_version::$semantic_version"
+          echo "semantic_version=$semantic_version" >> $env:GITHUB_OUTPUT
+      - name: Create tag only
+        uses: actions/github-script@v5
+        with:
+          script: |
+            if ( '${{ steps.get-latest-version.outputs.latest_tag }}' != '${{ steps.bumped.outputs.semantic_version }}' ) {
+              console.log('Creating tag: ${{ steps.bumped.outputs.semantic_version }}')
+              github.rest.git.createRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: 'refs/tags/${{ steps.bumped.outputs.semantic_version }}',
+                sha: context.sha
+              })  
+            } else {
+              console.log('Tag: ${{ needs.generate.outputs.semantic_version }} exists. Skipping tag creation.')
+            }   
+

@@ -54,7 +54,7 @@ func main() {
 	// 	fmt.Println("Error:", err)
 	// }
 
-	getCommonAnsibleRoles("capella-automation", "/etc/ansible", "main", "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")
+	//getCommonAnsibleRoles("capella-automation", "/etc/ansible", "main", "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")
 
 }
 
